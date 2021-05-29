@@ -1,0 +1,52 @@
+.magnifyingGlass {
+    position: relative;
+    margin-top: -640px;
+    margin-left: -640px;
+
+    .content {
+        position: absolute;
+        top: 150px;
+        left: 50px;
+        width: 270px;
+        height: 270px;
+        border-radius: 50%;
+        overflow: hidden;
+    }
+
+    .image {
+        height: 800px !important;
+        width: 800px !important;
+        max-width: unset !important;
+        max-height: unset !important;
+        cursor: all-scroll;
+    }
+
+    .glass {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 640px;
+        height: 640px;
+        background-image: url(./assets/magnifying-glass.png);
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: contain;
+        pointer-events: none;
+
+
+        $body: #e0c34c;
+        $stroke: #111827;
+        $shadow: #db277897;
+
+        .findOut {
+            margin-top: 100%;
+            font-size: 3em;
+            font-weight: bold;
+            letter-spacing: 10px;
+            color: $body;
+            text-shadow: -2px 0 $stroke, 0 -2px $stroke, 2px 0 $stroke, 0 2px $stroke,
+                2px 2px $stroke, -2px -2px $stroke, -2px 2px $stroke, 2px -2px $stroke,
+                6px 6px $shadow;
+        }
+    }
+}
