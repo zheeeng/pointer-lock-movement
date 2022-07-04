@@ -74,16 +74,16 @@ const InputNumber = React.memo<InputNumberProps>(
             }
         )
 
-        const resizeElRef = useRef<HTMLDivElement>(null)
+        const pointerLockerRef = useRef<HTMLDivElement>(null)
 
         useEffect(
             () => {
-                if (!resizeElRef.current) {
+                if (!pointerLockerRef.current) {
                     return
                 }
 
                 return pointerLockMovement(
-                    resizeElRef.current,
+                    pointerLockerRef.current,
                     {
                         onLock: handlePointerLockChange,
                         onMove: handlePointerLockMovement,
@@ -99,7 +99,7 @@ const InputNumber = React.memo<InputNumberProps>(
     
         return (
             <label {...labelProps} className={[className, 'inputNumber'].join(' ')}>
-                <div ref={resizeElRef}>
+                <div ref={pointerLockerRef}>
                     {resizeHandler}
                 </div>
                 <input value={typingValue} onChange={handleInputChange} onKeyDown={handleInputKeyDown} onBlur={handleInputBlur}/>
