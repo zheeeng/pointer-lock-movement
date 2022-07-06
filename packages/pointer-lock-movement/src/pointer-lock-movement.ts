@@ -4,14 +4,22 @@
 import { requestScreen, clearScreen } from './utils/requestScreen'
 import { requestCursor, clearCursor } from './utils/requestCursor'
 
+export type MoveState = {
+    status: 'moving' | 'stopped',
+    movementX: number,
+    movementY: number,
+    offsetX: number,
+    offsetY: number,
+}
+
 export type PointerLockMovementOption = {
     onLock?: (locked: boolean) => void,
-    onMove?: (event: MouseEvent, moveState: { status: 'moving' | 'stopped', offsetX: number, offsetY: number }) => void,
+    onMove?: (event: MouseEvent, moveState: MoveState) => void,
     cursor?: string | HTMLElement | Partial<CSSStyleDeclaration>,
     screen?: DOMRect | HTMLElement | Partial<CSSStyleDeclaration>,
     zIndex?: number,
     loopBehavior?: 'loop' | 'stop' | 'infinite',
-    trigger?: 'drag' | 'click',
+    trigger?: 'drag' | 'toggle',
 }
 
 type Iteration<Payload> = (payload: Payload) => Iteration<Payload>
@@ -63,14 +71,18 @@ export const pointerLockMovement = (
         startY: number,
         x: number,
         y: number,
+        movementX: number,
+        movementY: number,
         maxWidth: number,
         maxHeight: number
     }
 
     const move: CoData<MoveContext, MouseEvent> = (context, effect) => payload => {
         context.event = payload
-        context.x += payload.movementX
-        context.y += payload.movementY
+        context.movementX = payload.movementX
+        context.movementY = payload.movementY
+        context.x += context.movementX
+        context.y += context.movementY
         context.moveStatus = 'moving'
 
         if (option?.loopBehavior === 'loop') {
@@ -111,15 +123,18 @@ export const pointerLockMovement = (
     function startup () {
         let nextFn: Iteration<MouseEvent> | undefined
 
-        function handleMouseMove (event: MouseEvent) {
-            nextFn = nextFn?.(event)
+        function deActive () {
+            exitPointerLock()
+
+            option?.onLock?.(false)
+            document.removeEventListener('mousemove', handleMouseMove)
+
+            nextFn = undefined
+            clearCursor()
+            clearScreen()
         }
 
-        function handleActive () {
-            if (isLocked()) {
-                return
-            }
-
+        function active () {
             const virtualScreen = requestScreen(option?.screen, { zIndex: option?.zIndex })
 
             const virtualCursor = requestCursor(option?.cursor, { zIndex: option?.zIndex })
@@ -130,38 +145,62 @@ export const pointerLockMovement = (
                     moveStatus: 'moving',
                     startX: event.clientX,
                     startY: event.clientY,
+                    movementX: 0,
+                    movementY: 0,
                     x: event.clientX - virtualScreen.x,
                     y: event.clientY - virtualScreen.y,
                     maxWidth: virtualScreen.width,
                     maxHeight: virtualScreen.height,
                 },
-                ({ event, moveStatus, x, y, startX, startY }) => {
+                ({ event, moveStatus, x, y, startX, startY, movementX, movementY }) => {
                     virtualCursor.style.transform = `translate3D(${x}px, ${y}px, 0px)`
 
-                    option?.onMove?.(event, { status: moveStatus, offsetX: x - startX, offsetY: y - startY })
+                    option?.onMove?.(
+                        event,
+                        {
+                            status: moveStatus,
+                            offsetX: x - startX,
+                            offsetY: y - startY,
+                            movementX,
+                            movementY,
+                        }
+                    )
                 }
             )(event)
 
             document.addEventListener('mousemove', handleMouseMove)
 
-            option?.onLock?.(true)
+            document.addEventListener('pointerlockchange', function handlePointerLockChange () {
+                if (isLocked()) {
+                    return
+                }
 
+                document.removeEventListener('pointerlockchange', handlePointerLockChange)
+                deActive()
+            })
+
+            option?.onLock?.(true)
             requestPointerLock()
         }
-    
+
+        function handleMouseMove (event: MouseEvent) {
+            nextFn = nextFn?.(event)
+        }
+
         function handleDeActive () {
             if (!isLocked()) {
                 return
             }
     
-            exitPointerLock()
+            deActive()
+        }
 
-            option?.onLock?.(false)
-            document.removeEventListener('mousemove', handleMouseMove)
+        function handleActive () {
+            if (isLocked()) {
+                return
+            }
 
-            nextFn = undefined
-            clearCursor()
-            clearScreen()
+            active()
         }
 
         function handleToggleActive () {
@@ -175,24 +214,18 @@ export const pointerLockMovement = (
         assertSupportPointerLock()
 
         if (option?.trigger === 'drag') {
-            element.addEventListener('mousedown', handleActive)
-            element.addEventListener('mouseup', handleDeActive)
-            element.addEventListener('touchstart', handleActive)
-            element.addEventListener('touchend', handleDeActive)
-        
-            return () => {
-                element.removeEventListener('touchend', handleDeActive)
-                element.removeEventListener('touchstart', handleActive)
-                element.removeEventListener('mouseup', handleDeActive)
-                element.removeEventListener('mousedown', handleActive)
-            }
-        } else {
-            element.addEventListener('click', handleToggleActive)
-            element.addEventListener('touchstart', handleToggleActive)
+            element.addEventListener('pointerdown', handleActive)
+            element.addEventListener('pointerup', handleDeActive)
 
             return () => {
-                element.removeEventListener('click', handleToggleActive)
-                element.removeEventListener('touchstart', handleToggleActive)
+                element.removeEventListener('pointerdown', handleActive)
+                element.removeEventListener('pointerup', handleDeActive)
+            }
+        } else {
+            element.addEventListener('pointerdown', handleToggleActive)
+
+            return () => {
+                element.removeEventListener('pointerdown', handleToggleActive)
             }
         }
     

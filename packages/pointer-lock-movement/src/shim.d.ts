@@ -1,12 +1,5 @@
 // compatibility with old browsers
 declare global {
-    interface MouseEvent {
-        mozMovementX: number
-        mozMovementY: number
-        webkitMovementX: number
-        webkitMovementY: number
-    }
-    
     interface Document {
         mozPointerLockElement: Element
         webkitPointerLockElement: Element

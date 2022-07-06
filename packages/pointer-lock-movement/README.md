@@ -26,7 +26,7 @@ import { isSupportPointerLock, pointerLockMovement } from 'pointer-lock-movement
 if (isSupportPointerLock()) {
     const cleanup = pointerLockMovement(TOGGLE_ELEMENT, OPTIONS);
 
-    REQUEST_TO_DISPOSE_RELATED_EVENT_LISTENERS_CALLBACK(() => {
+    REQUEST_TO_DISPOSE_THE_LISTENED_EVENTS_CALLBACK(() => {
       cleanup()
     })
 }
@@ -81,19 +81,27 @@ See more examples:
 ## 📝 Type Definition
 
 ```ts
+type MoveState = {
+    status: 'moving' | 'stopped',
+    movementX: number,
+    movementY: number,
+    offsetX: number,
+    offsetY: number,
+}
+
 type PointerLockMovementOption = {
     onLock?: (locked: boolean) => void,
-    onMove?: (event: MouseEvent, moveState: { status: 'moving' | 'stopped', offsetX: number, offsetY: number }) => void,
+    onMove?: (event: MouseEvent, moveState: MoveState) => void,
     cursor?: string | HTMLElement | Partial<CSSStyleDeclaration>,
     screen?: DOMRect | HTMLElement | Partial<CSSStyleDeclaration>,
     zIndex?: number,
     loopBehavior?: 'loop' | 'stop' | 'infinite',
-    trigger?: 'drag' | 'click',
+    trigger?: 'drag' | 'toggle',
 }
 ```
 
-* `onLock` triggers on lock state changing
-* `onMove` triggers mouse movement, it carries the mouse event and the moving state. The status of `moveState` is usually `moving` apart from the `loopBehavior` is configured to `stop` and the virtual cursor reaches the edge of the screen.
+* `onLock` registers callback to listen locking state changing
+* `onMove` registers callback to listen mouse movement, it carries the corresponding event and the moving state. If the `loopBehavior` is configured to `stop` and the virtual cursor reached the edge of the screen, the `moveState.status` will be read as `stopped`.
 * `cursor` is used as the virtual cursor. By default, the cursor is an empty DIV element:
   * if it is a string, it will be used as the cursor's text content,
   * if it is an `HTMLElement`, it will be used as the virtual cursor,
@@ -108,9 +116,5 @@ type PointerLockMovementOption = {
   * `stop`: the virtual cursor will be stopped at the edge of the screen
   * `infinite`: the virtual cursor will be moved out of the screen
 * `trigger` is used to control the triggering way of the virtual cursor. By default, it is `drag`.
-  * `drag`: the virtual cursor movement will be toggled by mouse-down and mouse-up events.
-  * `click`: the virtual cursor movement will be toggled by clicks.
-
-## 💦 TODO
-
-* wheel scrolling control
+  * `drag`: the virtual cursor movement will be toggled by pointer-down and pointer-up events.
+  * `toggle`: the virtual cursor movement will be toggled by pointer events.

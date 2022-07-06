@@ -131,7 +131,7 @@ const customCursorElementStyle = {
 
 const Example = () => {
     const [loopBehavior, setLoopBehavior] = useState<'loop' | 'stop' | 'infinite'>()
-    const [trigger, setTrigger] = useState<'drag' | 'click'>()
+    const [trigger, setTrigger] = useState<'drag' | 'toggle'>()
 
     const handleLoopBehaviorChange = useEvent(
         (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -148,7 +148,7 @@ const Example = () => {
             if (event.target.value === '(empty)') {
                 setTrigger(undefined)
             } else {
-                setTrigger(event.target.value as 'drag' | 'click')
+                setTrigger(event.target.value as 'drag' | 'toggle')
             }
         },
     )
@@ -202,7 +202,7 @@ const Example = () => {
                                 <select value={trigger} onChange={handleTriggerChange}>
                                     <option>(empty)</option>
                                     <option value="drag">drag</option>
-                                    <option value="click">click</option>
+                                    <option value="toggle">toggle</option>
                                 </select>
                             </label>
                         </td>
