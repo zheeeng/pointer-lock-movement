@@ -180,7 +180,7 @@ const Example = () => {
 
     return (
         <div className="layout">
-            <div className="control-panel">
+            <div className="simple-style control-panel">
                 <div style={{  marginBottom: 20 }}>
                     <label style={{ marginRight: 20 }}>
                         {'I\'m interested at '}

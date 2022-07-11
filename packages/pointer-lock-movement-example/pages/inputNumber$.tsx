@@ -154,7 +154,7 @@ const Example = () => {
     )
 
     return (
-        <div className="layout">
+        <div className="layout simple-style">
             <table>
                 <thead>
                     <tr>
