@@ -1,6 +1,6 @@
 {
   "name": "pointer-lock-movement",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "author": "Zheeeng <hi@zheeeng.me>",
   "description": "A pointer lock movement manager for customizing your own creative UI.",
   "keywords": [
