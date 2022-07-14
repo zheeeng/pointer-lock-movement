@@ -134,7 +134,7 @@ export const pointerLockMovement = (
             clearScreen()
         }
 
-        function active () {
+        function active (pointerEvent: PointerEvent) {
             const virtualScreen = requestScreen(option?.screen, { zIndex: option?.zIndex })
 
             const virtualCursor = requestCursor(option?.cursor, { zIndex: option?.zIndex })
@@ -168,6 +168,8 @@ export const pointerLockMovement = (
                 }
             )(event)
 
+            nextFn = nextFn(pointerEvent)
+
             document.addEventListener('mousemove', handleMouseMove)
 
             document.addEventListener('pointerlockchange', function handlePointerLockChange () {
@@ -195,19 +197,19 @@ export const pointerLockMovement = (
             deActive()
         }
 
-        function handleActive () {
-            if (isLocked()) {
+        function handleActive (event: Event) {
+            if (isLocked() || !(event instanceof PointerEvent)) {
                 return
             }
 
-            active()
+            active(event)
         }
 
-        function handleToggleActive () {
+        function handleToggleActive (event: Event) {
             if (isLocked()) {
                 handleDeActive()
             } else {
-                handleActive()
+                handleActive(event)
             }
         }
     
