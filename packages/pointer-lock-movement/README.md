@@ -6,11 +6,11 @@
 ![pages workflow](https://github.com/zheeeng/pointer-lock-movement/actions/workflows/pages.yml/badge.svg)
 [![npm version](https://img.shields.io/npm/v/pointer-lock-movement.svg)](https://www.npmjs.com/package/pointer-lock-movement)
 
-A pointer lock movement manager for customizing your own creative UI. Inspired by [Figma](https://figma.com/)'s number input element: Dragging on an input label moves a virtual cursor continuously in an infinite looping area and slides the input's figure value.
+A pointer lock movement manager for customizing your own creative UI. Inspired by [Figma](https://figma.com/)'s number input element: Dragging on an input label and moves a virtual cursor continuously in an infinite looping area and slides the input's figure value.
 
 ![pointer-lock-movement](https://user-images.githubusercontent.com/1303154/177069380-b92d44c9-73ed-45c6-ba50-d89b381d3b51.png)
 
-This tool toggles pointer lock state when interacting with a specific element and continually delivers `MouseEvent`s. You can configure its behavior as you like.
+This tool toggles the pointer's lock state when user is interacting with a specific HTML element. Its registered callback is triggered when a mouse/touch pad/other pointing device delivers `MouseEvent` under the pointer-locked state. You can configure its behaviors as you like.
 
 ## 🧩  Installation
 
