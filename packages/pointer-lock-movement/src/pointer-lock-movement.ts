@@ -66,7 +66,7 @@ export const pointerLockMovement = (
 
     type MoveContext = {
         event: MouseEvent,
-        moveStatus: 'moving' | 'stopped',
+        status: 'moving' | 'stopped',
         startX: number,
         startY: number,
         x: number,
@@ -83,7 +83,7 @@ export const pointerLockMovement = (
         context.movementY = payload.movementY
         context.x += context.movementX
         context.y += context.movementY
-        context.moveStatus = 'moving'
+        context.status = 'moving'
 
         if (option?.loopBehavior === 'loop') {
             if (context.x > context.maxWidth) {
@@ -100,18 +100,18 @@ export const pointerLockMovement = (
         } else if (option?.loopBehavior === 'stop') {
             if (context.x > context.maxWidth) {
                 context.x = context.maxWidth
-                context.moveStatus = 'stopped'
+                context.status = 'stopped'
             } else if (context.x < 0) {
                 context.x = 0
-                context.moveStatus = 'stopped'
+                context.status = 'stopped'
             }
     
             if (context.y > context.maxHeight) {
                 context.y = context.maxHeight
-                context.moveStatus = 'stopped'
+                context.status = 'stopped'
             } else if (context.y < 0) {
                 context.y = 0
-                context.moveStatus = 'stopped'
+                context.status = 'stopped'
             }
         }
 
@@ -139,26 +139,26 @@ export const pointerLockMovement = (
 
             const virtualCursor = requestCursor(option?.cursor, { zIndex: option?.zIndex })
 
-            nextFn = event => move(
+            nextFn = move(
                 {
-                    event,
-                    moveStatus: 'moving',
-                    startX: event.clientX,
-                    startY: event.clientY,
+                    event: pointerEvent,
+                    status: 'moving',
+                    startX: pointerEvent.clientX,
+                    startY: pointerEvent.clientY,
                     movementX: 0,
                     movementY: 0,
-                    x: event.clientX - virtualScreen.x,
-                    y: event.clientY - virtualScreen.y,
+                    x: pointerEvent.clientX - virtualScreen.x,
+                    y: pointerEvent.clientY - virtualScreen.y,
                     maxWidth: virtualScreen.width,
                     maxHeight: virtualScreen.height,
                 },
-                ({ event, moveStatus, x, y, startX, startY, movementX, movementY }) => {
+                ({ event, status, x, y, startX, startY, movementX, movementY }) => {
                     virtualCursor.style.transform = `translate3D(${x}px, ${y}px, 0px)`
 
                     option?.onMove?.(
                         event,
                         {
-                            status: moveStatus,
+                            status,
                             offsetX: x - startX,
                             offsetY: y - startY,
                             movementX,
@@ -166,9 +166,7 @@ export const pointerLockMovement = (
                         }
                     )
                 }
-            )(event)
-
-            nextFn = nextFn(pointerEvent)
+            )(pointerEvent)
 
             document.addEventListener('mousemove', handleMouseMove)
 
