@@ -196,7 +196,11 @@ export const pointerLockMovement = (
         }
 
         function handleActive (event: Event) {
-            if (isLocked() || !(event instanceof PointerEvent)) {
+            if (!(event instanceof PointerEvent) || event.button !== 0) {
+                return
+            }
+
+            if (isLocked()) {
                 return
             }
 
@@ -204,6 +208,10 @@ export const pointerLockMovement = (
         }
 
         function handleToggleActive (event: Event) {
+            if (!(event instanceof PointerEvent) || event.button !== 0) {
+                return
+            }
+
             if (isLocked()) {
                 handleDeActive()
             } else {
@@ -215,11 +223,11 @@ export const pointerLockMovement = (
 
         if (option?.trigger === 'drag') {
             element.addEventListener('pointerdown', handleActive)
-            element.addEventListener('pointerup', handleDeActive)
+            document.addEventListener('pointerup', handleDeActive)
 
             return () => {
                 element.removeEventListener('pointerdown', handleActive)
-                element.removeEventListener('pointerup', handleDeActive)
+                document.removeEventListener('pointerup', handleDeActive)
             }
         } else {
             element.addEventListener('pointerdown', handleToggleActive)
