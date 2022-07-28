@@ -4,22 +4,23 @@ export function requestCursor (
     customCursor?: string | HTMLElement | Partial<CSSStyleDeclaration>,
     { zIndex} : { zIndex?: number } = {}
 ): HTMLElement {
-    const cursorEl = customCursor instanceof HTMLElement ? customCursor : document.createElement('div')
+    const cursorEl = document.createElement('div')
+    const cursorChildWrapper = document.createElement('div')
+    cursorEl.appendChild(cursorChildWrapper)
 
-    cursorEl.textContent = typeof customCursor === 'string' ? customCursor : ''
-
-    if (typeof customCursor === 'object' && customCursor !== null && !(customCursor instanceof HTMLElement)) {
-        Object.assign(cursorEl.style, customCursor)
+    if (customCursor instanceof HTMLElement) {
+        cursorChildWrapper.appendChild(customCursor)
+    } else if (typeof customCursor === 'string') {
+        cursorChildWrapper.textContent = customCursor
+    } else if (typeof customCursor === 'object' && customCursor !== null) {
+        Object.assign(cursorChildWrapper.style, customCursor)
     }
 
     cursorEl.style.position = 'fixed'
-    cursorEl.style.display = 'flex'
-    cursorEl.style.alignItems = 'center'
-    cursorEl.style.justifyContent = 'center'
     cursorEl.style.top = '0px'
     cursorEl.style.left = '0px'
-    cursorEl.style.width = cursorEl.style.width || '0px'
-    cursorEl.style.height = cursorEl.style.height || '0px'
+
+    cursorChildWrapper.style.transform = 'translate(-50%, -50%)'
 
     if (zIndex !== undefined) {
         cursorEl.style.zIndex = zIndex.toString()
