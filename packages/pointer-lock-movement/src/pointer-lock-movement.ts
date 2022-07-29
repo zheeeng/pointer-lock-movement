@@ -14,7 +14,7 @@ export type MoveState = {
 
 export type PointerLockMovementOption = {
     onLock?: (locked: boolean) => void,
-    onMove?: (event: MouseEvent, moveState: MoveState) => void,
+    onMove?: (event: PointerEvent, moveState: MoveState) => void,
     cursor?: string | HTMLElement | Partial<CSSStyleDeclaration>,
     screen?: DOMRect | HTMLElement | Partial<CSSStyleDeclaration>,
     zIndex?: number,
@@ -65,7 +65,7 @@ export const pointerLockMovement = (
     }
 
     type MoveContext = {
-        event: MouseEvent,
+        event: PointerEvent,
         status: 'moving' | 'stopped',
         startX: number,
         startY: number,
@@ -77,7 +77,7 @@ export const pointerLockMovement = (
         maxHeight: number
     }
 
-    const move: CoData<MoveContext, MouseEvent> = (context, effect) => payload => {
+    const move: CoData<MoveContext, PointerEvent> = (context, effect) => payload => {
         context.event = payload
         context.movementX = payload.movementX
         context.movementY = payload.movementY
@@ -85,7 +85,7 @@ export const pointerLockMovement = (
         context.y += context.movementY
         context.status = 'moving'
 
-        if (option?.loopBehavior === 'loop') {
+        if (option.loopBehavior === 'loop') {
             if (context.x > context.maxWidth) {
                 context.x -= context.maxWidth
             } else if (context.x < 0) {
@@ -97,7 +97,7 @@ export const pointerLockMovement = (
             } else if (context.y < 0) {
                 context.y += context.maxHeight
             }
-        } else if (option?.loopBehavior === 'stop') {
+        } else if (option.loopBehavior === 'stop') {
             if (context.x > context.maxWidth) {
                 context.x = context.maxWidth
                 context.status = 'stopped'
@@ -121,23 +121,31 @@ export const pointerLockMovement = (
     }
 
     function startup () {
-        let nextFn: Iteration<MouseEvent> | undefined
+        let nextFn: Iteration<PointerEvent> | undefined
 
         function deActive () {
             exitPointerLock()
 
-            option?.onLock?.(false)
-            document.removeEventListener('mousemove', handleMouseMove)
+            option.onLock?.(false)
+            document.removeEventListener('pointermove', handleMouseMove)
 
             nextFn = undefined
             clearCursor()
             clearScreen()
         }
 
-        function active (pointerEvent: PointerEvent) {
-            const virtualScreen = requestScreen(option?.screen, { zIndex: option?.zIndex })
+        function handleMouseMove (event: PointerEvent) {
+            if (option.trigger === 'drag' && !event.bubbles) {
+                deActive()
+            } else {
+                handleContinueMove(event)
+            }
+        }
 
-            const virtualCursor = requestCursor(option?.cursor, { zIndex: option?.zIndex })
+        function active (pointerEvent: PointerEvent) {
+            const virtualScreen = requestScreen(option.screen, { zIndex: option.zIndex })
+
+            const virtualCursor = requestCursor(option.cursor, { zIndex: option.zIndex })
 
             nextFn = move(
                 {
@@ -155,7 +163,7 @@ export const pointerLockMovement = (
                 ({ event, status, x, y, startX, startY, movementX, movementY }) => {
                     virtualCursor.style.transform = `translate3D(${x}px, ${y}px, 0px)`
 
-                    option?.onMove?.(
+                    option.onMove?.(
                         event,
                         {
                             status,
@@ -168,7 +176,7 @@ export const pointerLockMovement = (
                 }
             )(pointerEvent)
 
-            document.addEventListener('mousemove', handleMouseMove)
+            document.addEventListener('pointermove', handleMouseMove)
 
             document.addEventListener('pointerlockchange', function handlePointerLockChange () {
                 if (isLocked()) {
@@ -179,11 +187,11 @@ export const pointerLockMovement = (
                 deActive()
             })
 
-            option?.onLock?.(true)
+            option.onLock?.(true)
             requestPointerLock()
         }
 
-        function handleMouseMove (event: MouseEvent) {
+        function handleContinueMove (event: PointerEvent) {
             nextFn = nextFn?.(event)
         }
 
@@ -221,7 +229,7 @@ export const pointerLockMovement = (
     
         assertSupportPointerLock()
 
-        if (option?.trigger === 'drag') {
+        if (option.trigger === 'drag') {
             element.addEventListener('pointerdown', handleActive)
             document.addEventListener('pointerup', handleDeActive)
 

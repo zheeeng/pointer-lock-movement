@@ -191,7 +191,7 @@ const Example = () => {
                             <label>
                                 loopBehavior
                                 <select value={loopBehavior} onChange={handleLoopBehaviorChange}>
-                                    <option>(empty)</option>
+                                    <option>(use default)</option>
                                     <option value="loop">loop</option>
                                     <option value="stop">stop</option>
                                     <option value="infinite">infinite</option>
@@ -200,7 +200,7 @@ const Example = () => {
                             <label>
                                 trigger
                                 <select value={trigger} onChange={handleTriggerChange}>
-                                    <option>(empty)</option>
+                                    <option>(use default)</option>
                                     <option value="drag">drag</option>
                                     <option value="toggle">toggle</option>
                                 </select>

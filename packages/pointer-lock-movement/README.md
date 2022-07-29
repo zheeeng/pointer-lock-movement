@@ -10,7 +10,7 @@ A pointer lock movement manager for customizing your own creative UI. Inspired b
 
 ![pointer-lock-movement](https://user-images.githubusercontent.com/1303154/177069380-b92d44c9-73ed-45c6-ba50-d89b381d3b51.png)
 
-This tool toggles the pointer's lock state when user is interacting with a specific HTML element. Its registered callback is triggered when a mouse/touch pad/other pointing device delivers `MouseEvent` under the pointer-locked state. You can configure its behaviors as you like.
+This tool toggles the pointer's lock state when user is interacting with a specific HTML element. Its registered callback is triggered when a mouse/trackPad/other pointing device delivers `PointerEvent` under the pointer-locked state. You can configure its behaviors as you like.
 
 ## 🧩  Installation
 
@@ -91,7 +91,7 @@ type MoveState = {
 
 type PointerLockMovementOption = {
     onLock?: (locked: boolean) => void,
-    onMove?: (event: MouseEvent, moveState: MoveState) => void,
+    onMove?: (event: PointerEvent, moveState: MoveState) => void,
     cursor?: string | HTMLElement | Partial<CSSStyleDeclaration>,
     screen?: DOMRect | HTMLElement | Partial<CSSStyleDeclaration>,
     zIndex?: number,
@@ -101,7 +101,7 @@ type PointerLockMovementOption = {
 ```
 
 * `onLock` registers callback to listen locking state changing
-* `onMove` registers callback to listen mouse movement, it carries the corresponding event and the moving state. If the `loopBehavior` is configured to `stop` and the virtual cursor reached the edge of the screen, the `moveState.status` will be read as `stopped`.
+* `onMove` registers callback to listen pointer movement, it carries the corresponding event and the moving state. If the `loopBehavior` is configured to `stop` and the virtual cursor reached the edge of the screen, the `moveState.status` will be read as `stopped`.
 * `cursor` is used as the virtual cursor. By default, the cursor is an empty DIV element:
   * if it is a string, it will be used as the cursor's text content,
   * if it is an `HTMLElement`, it will be used as the virtual cursor,
