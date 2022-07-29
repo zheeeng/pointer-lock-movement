@@ -127,15 +127,15 @@ export const pointerLockMovement = (
             exitPointerLock()
 
             option.onLock?.(false)
-            document.removeEventListener('pointermove', handleMouseMove)
+            document.removeEventListener('pointermove', handlePointerMove)
 
             nextFn = undefined
             clearCursor()
             clearScreen()
         }
 
-        function handleMouseMove (event: PointerEvent) {
-            if (option.trigger === 'drag' && !event.bubbles) {
+        function handlePointerMove (event: PointerEvent) {
+            if (option.trigger === 'drag' && !event.buttons) {
                 deActive()
             } else {
                 handleContinueMove(event)
@@ -176,7 +176,7 @@ export const pointerLockMovement = (
                 }
             )(pointerEvent)
 
-            document.addEventListener('pointermove', handleMouseMove)
+            document.addEventListener('pointermove', handlePointerMove)
 
             document.addEventListener('pointerlockchange', function handlePointerLockChange () {
                 if (isLocked()) {
