@@ -20,7 +20,8 @@ export type PointerLockMovementOption = {
     zIndex?: number,
     loopBehavior?: 'loop' | 'stop' | 'infinite',
     trigger?: 'drag' | 'toggle',
-    dargOffset?: number,
+    dragOffset?: number,
+    disableOnActiveElement?: number,
 }
 
 type Iteration<Payload> = (payload: Payload) => Iteration<Payload>
@@ -124,19 +125,20 @@ export const pointerLockMovement = (
     function startup () {
         let nextFn: Iteration<PointerEvent> | undefined
 
-        const offsetStartPoint = {
+        const localState = {
+            targetOnActiveElement: false,
             startX: 0,
             startY: 0,
         }
 
         function detectMoveOffset (event: Event) {
-            if (!(event instanceof PointerEvent) || !event.buttons || !option.dargOffset) {
+            if (!(event instanceof PointerEvent) || !event.buttons || !option.dragOffset) {
                 return
             }
 
-            const offset = Math.sqrt(Math.pow(event.clientX - offsetStartPoint.startX, 2) + Math.pow(event.clientY - offsetStartPoint.startY, 2))
+            const offset = Math.sqrt(Math.pow(event.clientX - localState.startX, 2) + Math.pow(event.clientY - localState.startY, 2))
 
-            if (offset < option.dargOffset) {
+            if (offset < option.dragOffset) {
                 return
             }
 
@@ -227,6 +229,10 @@ export const pointerLockMovement = (
         }
 
         function handleActive (event: Event) {
+            if (localState.targetOnActiveElement && option.disableOnActiveElement) {
+                return
+            }
+
             if (!(event instanceof PointerEvent) || event.button !== 0) {
                 return
             }
@@ -251,7 +257,11 @@ export const pointerLockMovement = (
         }
 
         function handleActiveUntilDragOffset (event: Event) {
-            if (!(event instanceof PointerEvent) || event.button !== 0 || !option.dargOffset) {
+            if (localState.targetOnActiveElement && option.disableOnActiveElement) {
+                return
+            }
+
+            if (!(event instanceof PointerEvent) || event.button !== 0 || !option.dragOffset) {
                 return
             }
 
@@ -259,22 +269,39 @@ export const pointerLockMovement = (
                 return
             }
 
-            offsetStartPoint.startX = event.clientX
-            offsetStartPoint.startY = event.clientY
+            localState.startX = event.clientX
+            localState.startY = event.clientY
 
             element.addEventListener('pointermove', detectMoveOffset)
+        }
+
+        function markElementIsActiveElement (event: Event) {
+            if (!(event instanceof PointerEvent) || event.button !== 0 || !option.disableOnActiveElement) {
+                return
+            }
+
+            if (event.target === document.activeElement) {
+                localState.targetOnActiveElement = true
+            } else {
+                localState.targetOnActiveElement = false
+            }
         }
     
         assertSupportPointerLock()
 
+        if (option.disableOnActiveElement) {
+            element.addEventListener('pointerdown', markElementIsActiveElement, { capture: true })
+        }
+
         if (option.trigger === 'drag') {
-            if (option.dargOffset) {
+            if (option.dragOffset) {
                 element.addEventListener('pointerdown', handleActiveUntilDragOffset)
                 document.addEventListener('pointerup', handleDeActive)
 
                 return () => {
                     element.removeEventListener('pointermove', handleActiveUntilDragOffset)
                     document.removeEventListener('pointerup', handleDeActive)
+                    element.removeEventListener('pointerdown', markElementIsActiveElement, { capture: true })
                 }
             }
 
@@ -284,12 +311,14 @@ export const pointerLockMovement = (
             return () => {
                 element.removeEventListener('pointerdown', handleActive)
                 document.removeEventListener('pointerup', handleDeActive)
+                element.removeEventListener('pointerdown', markElementIsActiveElement, { capture: true })
             }
         } else {
             element.addEventListener('pointerdown', handleToggleActive)
 
             return () => {
                 element.removeEventListener('pointerdown', handleToggleActive)
+                element.removeEventListener('pointerdown', markElementIsActiveElement, { capture: true })
             }
         }
     

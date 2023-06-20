@@ -5,8 +5,7 @@
 import './layout.scss'
 
 import React, { useEffect, useState, useRef } from 'react'
-import type { PointerLockMovementOption } from 'pointer-lock-movement'
-import { pointerLockMovement } from 'pointer-lock-movement'
+import { pointerLockMovement, type PointerLockMovementOption } from 'pointer-lock-movement'
 import './inputNumber.scss'
 import { useEvent } from '../hooks/useEvent'
 
@@ -90,7 +89,6 @@ const InputNumber = React.memo<InputNumberProps>(
                         cursor,
                         loopBehavior,
                         trigger,
-                        dargOffset: 10,
                     }
                 )
             },
