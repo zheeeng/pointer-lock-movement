@@ -21,7 +21,7 @@ export type PointerLockMovementOption = {
     loopBehavior?: 'loop' | 'stop' | 'infinite',
     trigger?: 'drag' | 'toggle',
     dragOffset?: number,
-    disableOnActiveElement?: number,
+    disableOnActiveElement?: boolean,
 }
 
 type Iteration<Payload> = (payload: Payload) => Iteration<Payload>
