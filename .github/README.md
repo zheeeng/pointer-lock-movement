@@ -97,6 +97,8 @@ type PointerLockMovementOption = {
     zIndex?: number,
     loopBehavior?: 'loop' | 'stop' | 'infinite',
     trigger?: 'drag' | 'toggle',
+    dragOffset?: number,
+    disableOnActiveElement?: number,
 }
 ```
 
@@ -118,3 +120,5 @@ type PointerLockMovementOption = {
 * `trigger` is used to control the triggering way of the virtual cursor. By default, it is `drag`.
   * `drag`: the virtual cursor movement will be toggled by pointer-down and pointer-up events.
   * `toggle`: the virtual cursor movement will be toggled by pointer events.
+* `dragOffset` prevent invoking the pointer locker immediately until your pointer moves over the offset pixels.
+* `disableOnActiveElement` prevent pointer locking on active element. e.g. After attaching this feature on an input element, you may wish to select text range while it got focus.
