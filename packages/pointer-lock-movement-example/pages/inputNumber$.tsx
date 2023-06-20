@@ -90,6 +90,7 @@ const InputNumber = React.memo<InputNumberProps>(
                         cursor,
                         loopBehavior,
                         trigger,
+                        dargOffset: 10,
                     }
                 )
             },

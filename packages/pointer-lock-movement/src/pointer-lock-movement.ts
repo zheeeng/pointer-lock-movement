@@ -20,6 +20,7 @@ export type PointerLockMovementOption = {
     zIndex?: number,
     loopBehavior?: 'loop' | 'stop' | 'infinite',
     trigger?: 'drag' | 'toggle',
+    dargOffset?: number,
 }
 
 type Iteration<Payload> = (payload: Payload) => Iteration<Payload>
@@ -123,11 +124,33 @@ export const pointerLockMovement = (
     function startup () {
         let nextFn: Iteration<PointerEvent> | undefined
 
+        const offsetStartPoint = {
+            startX: 0,
+            startY: 0,
+        }
+
+        function detectMoveOffset (event: Event) {
+            if (!(event instanceof PointerEvent) || !event.buttons || !option.dargOffset) {
+                return
+            }
+
+            const offset = Math.sqrt(Math.pow(event.clientX - offsetStartPoint.startX, 2) + Math.pow(event.clientY - offsetStartPoint.startY, 2))
+
+            if (offset < option.dargOffset) {
+                return
+            }
+
+            element.removeEventListener('pointermove', detectMoveOffset)
+
+            active(event)
+        }
+
         function deActive () {
             exitPointerLock()
 
             option.onLock?.(false)
             document.removeEventListener('pointermove', handlePointerMove)
+            document.removeEventListener('pointermove', detectMoveOffset)
 
             nextFn = undefined
             clearCursor()
@@ -226,10 +249,35 @@ export const pointerLockMovement = (
                 handleActive(event)
             }
         }
+
+        function handleActiveUntilDragOffset (event: Event) {
+            if (!(event instanceof PointerEvent) || event.button !== 0 || !option.dargOffset) {
+                return
+            }
+
+            if (isLocked()) {
+                return
+            }
+
+            offsetStartPoint.startX = event.clientX
+            offsetStartPoint.startY = event.clientY
+
+            element.addEventListener('pointermove', detectMoveOffset)
+        }
     
         assertSupportPointerLock()
 
         if (option.trigger === 'drag') {
+            if (option.dargOffset) {
+                element.addEventListener('pointerdown', handleActiveUntilDragOffset)
+                document.addEventListener('pointerup', handleDeActive)
+
+                return () => {
+                    element.removeEventListener('pointermove', handleActiveUntilDragOffset)
+                    document.removeEventListener('pointerup', handleDeActive)
+                }
+            }
+
             element.addEventListener('pointerdown', handleActive)
             document.addEventListener('pointerup', handleDeActive)
 
