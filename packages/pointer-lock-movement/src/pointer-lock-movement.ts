@@ -144,7 +144,7 @@ export const pointerLockMovement = (
 
             element.removeEventListener('pointermove', detectMoveOffset)
 
-            handleActive(event)
+            active(event)
         }
 
         function deActive () {
@@ -152,7 +152,6 @@ export const pointerLockMovement = (
 
             option.onLock?.(false)
             document.removeEventListener('pointermove', handlePointerMove)
-            document.removeEventListener('pointermove', detectMoveOffset)
 
             nextFn = undefined
             clearCursor()
@@ -273,6 +272,11 @@ export const pointerLockMovement = (
             localState.startY = event.clientY
 
             element.addEventListener('pointermove', detectMoveOffset)
+
+            element.addEventListener('pointerup', function unbindEvent () {
+                element.removeEventListener('pointerup', unbindEvent)
+                element.removeEventListener('pointermove', detectMoveOffset)
+            })
         }
 
         function markElementIsActiveElement (event: Event) {
