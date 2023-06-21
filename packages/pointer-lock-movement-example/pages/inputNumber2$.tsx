@@ -58,6 +58,17 @@ const InputNumber = React.memo<InputNumberProps>(
             },
         )
 
+        const handlePrepareLock = useEvent(
+            (e: PointerEvent) => {
+                e.preventDefault()
+            }
+        )
+
+        const handleCancelPrepareLock = useEvent(
+            () => {
+            pointerLockerRef.current?.focus()
+        })
+
         const handlePointerLockChange = useEvent(
             (lock: boolean) => {
                 if (!lock) {
@@ -67,7 +78,7 @@ const InputNumber = React.memo<InputNumberProps>(
         )
 
         const handlePointerLockMovement = useEvent(
-            (event: MouseEvent) => {
+            (event: PointerEvent) => {
                 setTypingValue((+typingValue + event.movementX).toString())
             }
         )
@@ -83,6 +94,8 @@ const InputNumber = React.memo<InputNumberProps>(
                 return pointerLockMovement(
                     pointerLockerRef.current,
                     {
+                        onPrepareLock: handlePrepareLock,
+                        onCancelPrepareLock: handleCancelPrepareLock,
                         onLock: handlePointerLockChange,
                         onMove: handlePointerLockMovement,
                         cursor: '⟺',
@@ -92,7 +105,7 @@ const InputNumber = React.memo<InputNumberProps>(
                     }
                 )
             },
-            [handlePointerLockChange, handlePointerLockMovement, dragOffset, trigger, disableOnActiveElement],
+            [handlePointerLockChange, handlePointerLockMovement, dragOffset, trigger, disableOnActiveElement, handlePrepareLock, handleCancelPrepareLock],
         )
 
     

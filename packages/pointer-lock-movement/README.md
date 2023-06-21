@@ -91,6 +91,8 @@ type MoveState = {
 
 type PointerLockMovementOption = {
     onLock?: (locked: boolean) => void,
+    onPrepareLock?: (event: PointerEvent) => void,
+    onCancelPrepareLock?: (event: PointerEvent) => void,
     onMove?: (event: PointerEvent, moveState: MoveState) => void,
     cursor?: string | HTMLElement | Partial<CSSStyleDeclaration>,
     screen?: DOMRect | HTMLElement | Partial<CSSStyleDeclaration>,
@@ -103,6 +105,8 @@ type PointerLockMovementOption = {
 ```
 
 * `onLock` registers callback to listen locking state changing
+* `onPrepareLock` registers callback to listen detecting drag offset
+* `onCancelPrepareLock` registers callback to listen canceling requesting locker, it triggers on drag movement offset doesn't reach the passed option `dragOffset`.
 * `onMove` registers callback to listen pointer movement, it carries the corresponding event and the moving state. If the `loopBehavior` is configured to `stop` and the virtual cursor reached the edge of the screen, the `moveState.status` will be read as `stopped`.
 * `cursor` is used as the virtual cursor. By default, the cursor is an empty DIV element:
   * if it is a string, it will be used as the cursor's text content,

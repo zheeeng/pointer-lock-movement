@@ -68,7 +68,7 @@ const InputNumber = React.memo<InputNumberProps>(
         )
 
         const handlePointerLockMovement = useEvent(
-            (event: MouseEvent) => {
+            (event: PointerEvent) => {
                 setTypingValue((+typingValue + event.movementX).toString())
             }
         )

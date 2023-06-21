@@ -14,6 +14,8 @@ export type MoveState = {
 
 export type PointerLockMovementOption = {
     onLock?: (locked: boolean) => void,
+    onPrepareLock?: (event: PointerEvent) => void,
+    onCancelPrepareLock?: (event: PointerEvent) => void,
     onMove?: (event: PointerEvent, moveState: MoveState) => void,
     cursor?: string | HTMLElement | Partial<CSSStyleDeclaration>,
     screen?: DOMRect | HTMLElement | Partial<CSSStyleDeclaration>,
@@ -274,7 +276,7 @@ export const pointerLockMovement = (
                 return
             }
 
-            event.preventDefault()
+            option?.onPrepareLock?.(event)
 
             localState.isDetecting = true
             localState.startX = event.clientX
@@ -282,11 +284,11 @@ export const pointerLockMovement = (
 
             element.addEventListener('pointermove', detectMoveOffset)
 
-            element.addEventListener('pointerup', function unbindEvent () {
+            element.addEventListener('pointerup', function unbindEvent (event: Event) {
                 if (localState.isDetecting) {
-                    if ('focus' in element && typeof element.focus === 'function') {
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-                        element.focus?.()
+
+                    if (event instanceof PointerEvent) {
+                        option?.onCancelPrepareLock?.(event)
                     }
                 }
 
