@@ -144,7 +144,7 @@ export const pointerLockMovement = (
 
             element.removeEventListener('pointermove', detectMoveOffset)
 
-            active(event)
+            handleActive(event)
         }
 
         function deActive () {
@@ -229,11 +229,11 @@ export const pointerLockMovement = (
         }
 
         function handleActive (event: Event) {
-            if (localState.targetOnActiveElement && option.disableOnActiveElement) {
+            if (!(event instanceof PointerEvent) || event.button !== 0) {
                 return
             }
 
-            if (!(event instanceof PointerEvent) || event.button !== 0) {
+            if (localState.targetOnActiveElement && option.disableOnActiveElement) {
                 return
             }
 
@@ -257,11 +257,11 @@ export const pointerLockMovement = (
         }
 
         function handleActiveUntilDragOffset (event: Event) {
-            if (localState.targetOnActiveElement && option.disableOnActiveElement) {
+            if (!(event instanceof PointerEvent) || event.button !== 0 || !option.dragOffset) {
                 return
             }
 
-            if (!(event instanceof PointerEvent) || event.button !== 0 || !option.dragOffset) {
+            if (localState.targetOnActiveElement && option.disableOnActiveElement) {
                 return
             }
 
@@ -290,7 +290,7 @@ export const pointerLockMovement = (
         assertSupportPointerLock()
 
         if (option.disableOnActiveElement) {
-            element.addEventListener('pointerdown', markElementIsActiveElement, { capture: true })
+            element.addEventListener('pointerdown', markElementIsActiveElement)
         }
 
         if (option.trigger === 'drag') {
@@ -301,7 +301,7 @@ export const pointerLockMovement = (
                 return () => {
                     element.removeEventListener('pointermove', handleActiveUntilDragOffset)
                     document.removeEventListener('pointerup', handleDeActive)
-                    element.removeEventListener('pointerdown', markElementIsActiveElement, { capture: true })
+                    element.removeEventListener('pointerdown', markElementIsActiveElement)
                 }
             }
 
@@ -311,14 +311,14 @@ export const pointerLockMovement = (
             return () => {
                 element.removeEventListener('pointerdown', handleActive)
                 document.removeEventListener('pointerup', handleDeActive)
-                element.removeEventListener('pointerdown', markElementIsActiveElement, { capture: true })
+                element.removeEventListener('pointerdown', markElementIsActiveElement)
             }
         } else {
             element.addEventListener('pointerdown', handleToggleActive)
 
             return () => {
                 element.removeEventListener('pointerdown', handleToggleActive)
-                element.removeEventListener('pointerdown', markElementIsActiveElement, { capture: true })
+                element.removeEventListener('pointerdown', markElementIsActiveElement)
             }
         }
     
