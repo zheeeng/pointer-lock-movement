@@ -127,6 +127,7 @@ export const pointerLockMovement = (
 
         const localState = {
             targetOnActiveElement: false,
+            isDetecting: false,
             startX: 0,
             startY: 0,
         }
@@ -143,6 +144,7 @@ export const pointerLockMovement = (
             }
 
             element.removeEventListener('pointermove', detectMoveOffset)
+            localState.isDetecting = false
 
             active(event)
         }
@@ -227,7 +229,15 @@ export const pointerLockMovement = (
             deActive()
         }
 
-        function handleActive (event: Event) {
+        function handleActive (event: PointerEvent) {
+            if (isLocked()) {
+                return
+            }
+
+            active(event)
+        }
+
+        function handleDragActive (event: Event) {
             if (!(event instanceof PointerEvent) || event.button !== 0) {
                 return
             }
@@ -236,11 +246,7 @@ export const pointerLockMovement = (
                 return
             }
 
-            if (isLocked()) {
-                return
-            }
-
-            active(event)
+            handleActive(event)
         }
 
         function handleToggleActive (event: Event) {
@@ -255,7 +261,7 @@ export const pointerLockMovement = (
             }
         }
 
-        function handleActiveUntilDragOffset (event: Event) {
+        function handleDragOffsetActive (event: Event) {
             if (!(event instanceof PointerEvent) || event.button !== 0 || !option.dragOffset) {
                 return
             }
@@ -268,14 +274,25 @@ export const pointerLockMovement = (
                 return
             }
 
+            event.preventDefault()
+
+            localState.isDetecting = true
             localState.startX = event.clientX
             localState.startY = event.clientY
 
             element.addEventListener('pointermove', detectMoveOffset)
 
             element.addEventListener('pointerup', function unbindEvent () {
+                if (localState.isDetecting) {
+                    if ('focus' in element && typeof element.focus === 'function') {
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                        element.focus?.()
+                    }
+                }
+
                 element.removeEventListener('pointerup', unbindEvent)
                 element.removeEventListener('pointermove', detectMoveOffset)
+                localState.isDetecting = false
             })
         }
 
@@ -299,21 +316,21 @@ export const pointerLockMovement = (
 
         if (option.trigger === 'drag') {
             if (option.dragOffset) {
-                element.addEventListener('pointerdown', handleActiveUntilDragOffset)
+                element.addEventListener('pointerdown', handleDragOffsetActive)
                 document.addEventListener('pointerup', handleDeActive)
 
                 return () => {
-                    element.removeEventListener('pointermove', handleActiveUntilDragOffset)
+                    element.removeEventListener('pointermove', handleDragOffsetActive)
                     document.removeEventListener('pointerup', handleDeActive)
                     element.removeEventListener('pointerdown', markElementIsActiveElement)
                 }
             }
 
-            element.addEventListener('pointerdown', handleActive)
+            element.addEventListener('pointerdown', handleDragActive)
             document.addEventListener('pointerup', handleDeActive)
 
             return () => {
-                element.removeEventListener('pointerdown', handleActive)
+                element.removeEventListener('pointerdown', handleDragActive)
                 document.removeEventListener('pointerup', handleDeActive)
                 element.removeEventListener('pointerdown', markElementIsActiveElement)
             }
