@@ -54,7 +54,7 @@ export const pointerLockMovement = (
         ...customOption
     }: PointerLockMovementOption = {}
 ) => {
-    const option = { ...customOption, loopBehavior, trigger, zIndex }
+    const options = { ...customOption, loopBehavior, trigger, zIndex }
 
     function requestPointerLock () {
         (element.requestPointerLock ?? element.mozRequestPointerLock ?? element.webkitRequestPointerLock).call(element)
@@ -89,7 +89,7 @@ export const pointerLockMovement = (
         context.y += context.movementY
         context.status = 'moving'
 
-        if (option.loopBehavior === 'loop') {
+        if (options.loopBehavior === 'loop') {
             if (context.x > context.maxWidth) {
                 context.x -= context.maxWidth
             } else if (context.x < 0) {
@@ -101,7 +101,7 @@ export const pointerLockMovement = (
             } else if (context.y < 0) {
                 context.y += context.maxHeight
             }
-        } else if (option.loopBehavior === 'stop') {
+        } else if (options.loopBehavior === 'stop') {
             if (context.x > context.maxWidth) {
                 context.x = context.maxWidth
                 context.status = 'stopped'
@@ -135,13 +135,13 @@ export const pointerLockMovement = (
         }
 
         function detectMoveOffset (event: Event) {
-            if (!(event instanceof PointerEvent) || !event.buttons || !option.dragOffset) {
+            if (!(event instanceof PointerEvent) || !event.buttons || !options.dragOffset) {
                 return
             }
 
             const offset = Math.sqrt(Math.pow(event.clientX - localState.startX, 2) + Math.pow(event.clientY - localState.startY, 2))
 
-            if (offset < option.dragOffset) {
+            if (offset < options.dragOffset) {
                 return
             }
 
@@ -154,7 +154,7 @@ export const pointerLockMovement = (
         function deActive () {
             exitPointerLock()
 
-            option.onLock?.(false)
+            options.onLock?.(false)
             document.removeEventListener('pointermove', handlePointerMove)
 
             nextFn = undefined
@@ -163,7 +163,7 @@ export const pointerLockMovement = (
         }
 
         function handlePointerMove (event: PointerEvent) {
-            if (option.trigger === 'drag' && !event.buttons) {
+            if (options.trigger === 'drag' && !event.buttons) {
                 deActive()
             } else {
                 handleContinueMove(event)
@@ -171,9 +171,9 @@ export const pointerLockMovement = (
         }
 
         function active (pointerEvent: PointerEvent) {
-            const virtualScreen = requestScreen(option.screen, { zIndex: option.zIndex })
+            const virtualScreen = requestScreen(options.screen, { zIndex: options.zIndex })
 
-            const virtualCursor = requestCursor(option.cursor, { zIndex: option.zIndex })
+            const virtualCursor = requestCursor(options.cursor, { zIndex: options.zIndex })
 
             nextFn = move(
                 {
@@ -191,7 +191,7 @@ export const pointerLockMovement = (
                 ({ event, status, x, y, startX, startY, movementX, movementY }) => {
                     virtualCursor.style.transform = `translate3D(${x}px, ${y}px, 0px)`
 
-                    option.onMove?.(
+                    options.onMove?.(
                         event,
                         {
                             status,
@@ -215,7 +215,7 @@ export const pointerLockMovement = (
                 deActive()
             })
 
-            option.onLock?.(true)
+            options.onLock?.(true)
             requestPointerLock()
         }
 
@@ -244,7 +244,7 @@ export const pointerLockMovement = (
                 return
             }
 
-            if (localState.targetOnActiveElement && option.disableOnActiveElement) {
+            if (localState.targetOnActiveElement && options.disableOnActiveElement) {
                 return
             }
 
@@ -264,11 +264,11 @@ export const pointerLockMovement = (
         }
 
         function handleDragOffsetActive (event: Event) {
-            if (!(event instanceof PointerEvent) || event.button !== 0 || !option.dragOffset) {
+            if (!(event instanceof PointerEvent) || event.button !== 0 || !options.dragOffset) {
                 return
             }
 
-            if (localState.targetOnActiveElement && option.disableOnActiveElement) {
+            if (localState.targetOnActiveElement && options.disableOnActiveElement) {
                 return
             }
 
@@ -276,7 +276,7 @@ export const pointerLockMovement = (
                 return
             }
 
-            option?.onPrepareLock?.(event)
+            options?.onPrepareLock?.(event)
 
             localState.isDetecting = true
             localState.startX = event.clientX
@@ -288,7 +288,7 @@ export const pointerLockMovement = (
                 if (localState.isDetecting) {
 
                     if (event instanceof PointerEvent) {
-                        option?.onCancelPrepareLock?.(event)
+                        options?.onCancelPrepareLock?.(event)
                     }
                 }
 
@@ -299,7 +299,7 @@ export const pointerLockMovement = (
         }
 
         function markElementIsActiveElement (event: Event) {
-            if (!(event instanceof PointerEvent) || event.button !== 0 || !option.disableOnActiveElement) {
+            if (!(event instanceof PointerEvent) || event.button !== 0 || !options.disableOnActiveElement) {
                 return
             }
 
@@ -312,12 +312,12 @@ export const pointerLockMovement = (
     
         assertSupportPointerLock()
 
-        if (option.disableOnActiveElement) {
+        if (options.disableOnActiveElement) {
             element.addEventListener('pointerdown', markElementIsActiveElement)
         }
 
-        if (option.trigger === 'drag') {
-            if (option.dragOffset) {
+        if (options.trigger === 'drag') {
+            if (options.dragOffset) {
                 element.addEventListener('pointerdown', handleDragOffsetActive)
                 document.addEventListener('pointerup', handleDeActive)
 
