@@ -82,6 +82,10 @@ export const pointerLockMovement = (
     }
 
     const move: CoData<MoveContext, PointerEvent> = (context, effect) => payload => {
+        if (payload.defaultPrevented) {
+            return move(context, effect)
+        }
+
         context.event = payload
         context.movementX = payload.movementX
         context.movementY = payload.movementY
@@ -189,6 +193,8 @@ export const pointerLockMovement = (
                     maxHeight: virtualScreen.height,
                 },
                 ({ event, status, x, y, startX, startY, movementX, movementY }) => {
+                    virtualCursor.style.transform = `translate3D(${x}px, ${y}px, 0px)`
+
                     options.onMove?.(
                         event,
                         {
@@ -199,10 +205,6 @@ export const pointerLockMovement = (
                             movementY,
                         }
                     )
-
-                    if (!event.defaultPrevented) {
-                        virtualCursor.style.transform = `translate3D(${x}px, ${y}px, 0px)`
-                    }
                 }
             )(pointerEvent)
 
