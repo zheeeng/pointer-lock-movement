@@ -82,50 +82,54 @@ export const pointerLockMovement = (
     }
 
     const move: CoData<MoveContext, PointerEvent> = (context, effect) => payload => {
-        if (payload.defaultPrevented) {
+        const contextPatch: Pick<MoveContext, 'event' | 'movementX' | 'movementY' | 'x' | 'y' | 'status'> = {
+            event: payload,
+            movementX: payload.movementX,
+            movementY: payload.movementY,
+            x: context.x + context.movementX,
+            y: context.y + context.movementY,
+            status: 'moving',
+        }
+
+        if (options.loopBehavior === 'loop') {
+            if (contextPatch.x > context.maxWidth) {
+                contextPatch.x -= context.maxWidth
+            } else if (contextPatch.x < 0) {
+                contextPatch.x += context.maxWidth
+            }
+    
+            if (contextPatch.y > context.maxHeight) {
+                contextPatch.y -= context.maxHeight
+            } else if (contextPatch.y < 0) {
+                contextPatch.y += context.maxHeight
+            }
+        } else if (options.loopBehavior === 'stop') {
+            if (contextPatch.x > context.maxWidth) {
+                contextPatch.x = context.maxWidth
+                context.status = 'stopped'
+            } else if (contextPatch.x < 0) {
+                contextPatch.x = 0
+                contextPatch.status = 'stopped'
+            }
+    
+            if (contextPatch.y > context.maxHeight) {
+                contextPatch.y = context.maxHeight
+                context.status = 'stopped'
+            } else if (contextPatch.y < 0) {
+                contextPatch.y = 0
+                contextPatch.status = 'stopped'
+            }
+        }
+
+        const newContext = { ...context, ...contextPatch }
+
+        effect(newContext)
+
+        if (newContext.event.defaultPrevented) {
             return move(context, effect)
         }
 
-        context.event = payload
-        context.movementX = payload.movementX
-        context.movementY = payload.movementY
-        context.x += context.movementX
-        context.y += context.movementY
-        context.status = 'moving'
-
-        if (options.loopBehavior === 'loop') {
-            if (context.x > context.maxWidth) {
-                context.x -= context.maxWidth
-            } else if (context.x < 0) {
-                context.x += context.maxWidth
-            }
-    
-            if (context.y > context.maxHeight) {
-                context.y -= context.maxHeight
-            } else if (context.y < 0) {
-                context.y += context.maxHeight
-            }
-        } else if (options.loopBehavior === 'stop') {
-            if (context.x > context.maxWidth) {
-                context.x = context.maxWidth
-                context.status = 'stopped'
-            } else if (context.x < 0) {
-                context.x = 0
-                context.status = 'stopped'
-            }
-    
-            if (context.y > context.maxHeight) {
-                context.y = context.maxHeight
-                context.status = 'stopped'
-            } else if (context.y < 0) {
-                context.y = 0
-                context.status = 'stopped'
-            }
-        }
-
-        effect(context)
-
-        return move(context, effect)
+        return move(newContext, effect)
     }
 
     function startup () {
