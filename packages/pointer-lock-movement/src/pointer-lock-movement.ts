@@ -4,6 +4,9 @@
 import { requestScreen, clearScreen } from './utils/requestScreen'
 import { requestCursor, clearCursor } from './utils/requestCursor'
 
+const HISTORY_LENGTH = 8
+const CONFIDENCE_THRESHOLD = 2.0
+
 export type MoveState = {
     status: 'moving' | 'stopped',
     movementX: number,
@@ -75,6 +78,8 @@ export const pointerLockMovement = (
         startY: number,
         x: number,
         y: number,
+        historyX: number[],
+        historyY: number[],
         movementX: number,
         movementY: number,
         maxWidth: number,
@@ -82,12 +87,43 @@ export const pointerLockMovement = (
     }
 
     const move: CoData<MoveContext, PointerEvent> = (context, effect) => payload => {
-        const contextPatch: Pick<MoveContext, 'event' | 'movementX' | 'movementY' | 'x' | 'y' | 'status'> = {
+        let { movementX, movementY } = payload
+
+        const historyX = [...context.historyX, movementX].slice(-HISTORY_LENGTH)
+        const historyY = [...context.historyY, movementY].slice(-HISTORY_LENGTH)
+
+        const shouldValidate = historyX.length === HISTORY_LENGTH && historyY.length === HISTORY_LENGTH
+
+        if (shouldValidate) {
+            const averageX = historyX.reduce((sum, value) => sum + value, 0) / historyX.length
+            const averageY = historyY.reduce((sum, value) => sum + value, 0) / historyY.length
+
+            const standardDeviationX = Math.sqrt(historyX.reduce((sum, value) => sum + Math.pow(value - averageX, 2), 0) / historyX.length)
+            const standardDeviationY = Math.sqrt(historyY.reduce((sum, value) => sum + Math.pow(value - averageY, 2), 0) / historyY.length)
+
+            if (standardDeviationX > 0) {
+                const zScoreX = Math.abs(movementX - averageX) / standardDeviationX
+                if (zScoreX > CONFIDENCE_THRESHOLD) {
+                    movementX = averageX
+                }
+            }
+
+            if (standardDeviationY > 0) {
+                const zScoreY = Math.abs(movementY - averageY) / standardDeviationY
+                if (zScoreY > CONFIDENCE_THRESHOLD) {
+                    movementY = averageY
+                }
+            }
+        }
+
+        const contextPatch: Pick<MoveContext, 'event' | 'movementX' | 'movementY' | 'x' | 'y' | 'status' | 'historyX' | 'historyY'> = {
             event: payload,
-            movementX: payload.movementX,
-            movementY: payload.movementY,
+            movementX,
+            movementY,
             x: context.x + context.movementX,
             y: context.y + context.movementY,
+            historyX,
+            historyY,
             status: 'moving',
         }
 
@@ -191,6 +227,8 @@ export const pointerLockMovement = (
                     startY: pointerEvent.clientY,
                     movementX: 0,
                     movementY: 0,
+                    historyX: [],
+                    historyY: [],
                     x: pointerEvent.clientX - virtualScreen.x,
                     y: pointerEvent.clientY - virtualScreen.y,
                     maxWidth: virtualScreen.width,
